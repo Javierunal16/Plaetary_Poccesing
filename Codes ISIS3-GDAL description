@@ -55,3 +55,21 @@ gdalwarp -t_srs Projectionfile.prj Original.tif Projected.tif
 #Delete intermediate files
 
 find . -maxdepth 1 -not -name 'Final.cub' -name "*.cub" -type f -delete
+
+#Codes for M3
+
+#Import to ISIS, it is neccesary to use the label of the lvl1 version of the data, so change the name of the cube in the RDN_IMAGE line
+
+chan1m32isis from=*v03_l1b.lbl to=*rfl.cub LOC=*v03_loc.img OBS=*v03_obs.img
+
+Labels update
+
+spiceinit from=rfl.cub
+
+#Some imagesm ight need to be cropped to pass the size-limit of the projection
+
+crop samples=starting_colum line=starting_row nsamples=total_amount_columns slines=total_amount_rows
+
+#Projection
+
+cam2map from=rfl.cub map=Mapfile.map to=rfl_lv2.cub
