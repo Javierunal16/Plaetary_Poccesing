@@ -1,0 +1,57 @@
+#Activate ISIS, after installing in ubuntu in a envoriment called "isis"
+
+source activate isis
+
+#Creating a map projection file, his open the GUI and allow the user to select te projection parameters (type, clon, clat, pixel ress)
+
+maptemplate map=Mapfile.map -GUI
+
+#Creating a list of the images to do the proccesing as a batch procces
+
+ls *.IMG | sed s/.IMG// > Imputs.lis
+
+#ISIS codes for using LROC NAC data, similar for otherm ission, just have to replace the comands to the corresponding mission
+
+#Ingesting data to ISIS, converting .img to .cub
+
+lronac2isis from=\$1.IMG to=\$1.cub -batchlist=Imputs.lis
+
+#Labels update, which actualize te cube for the upcoming steeps
+
+spiceinit from=\$1.cub -batchlist=Imputs.lis
+
+#Calibrate to I/F
+
+lronaccal from=\$1.cub to=\$1_lv1.cub -batchlist=Imputs.lis
+
+#Some NAC-ONLY correction
+
+lronacecho from=\$1_lv1.cub to=\$1_lv1echo.cub -batchlist=Imputs.lis
+
+#Map projection, using the pojection file defined before
+
+cam2map from=\$1_lv1echo.cub map=Mapfile.map to=\$1_lv2.cub PIXRES=map -batchlist=Imputs.lis
+
+#Put all the level two cubes with path in a text file for future proccesing
+
+ls -d "$PWD"/*_lv2.cub > List.txt
+
+#Photometric correction, the .pvl should contain the information for the operation (use high band tolerance), NO NECCESARY FOR GEOMOPOLOGY PURPOSES
+
+lronacpho from=\$1_lv2.cub to=\$1_lv3.cub phopar=Photofile.pvl -batchlist=Imputs.lis
+
+#Mosaic the images, if the images dont overlap, the hold parameter should be configured
+
+noseam from=List.txt to=Final.cub samples=333 lines=333
+
+#Transformation of format
+
+gdal_translate Final.cub Final.tif
+
+#Projecting if needed, if the prjection code is ot ESPG a .prj file wit te projection properties is neccesary
+
+gdalwarp -t_srs Projectionfile.prj Original.tif Projected.tif 
+
+#Delete intermediate files
+
+find . -maxdepth 1 -not -name 'Final.cub' -name "*.cub" -type f -delete
