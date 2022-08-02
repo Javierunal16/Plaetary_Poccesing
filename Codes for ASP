@@ -1,0 +1,17 @@
+#Ames Stereo Pipeline codes for DTM proccesing, should be installed amogside ISIS
+
+#Bundle adjusment, alignment of two or more cubes to generate a coherent DTM
+
+bundle_adjust Y_lv2.cub X_lv2.cub -o match_files/match
+
+#Stereo, creation of point cloud, this will output the good pixel map and PC.tif, the gray pixels means encountered correlation, works for two at a time
+
+stereo Y_lv2.cub X_lv2.cub results_1/1 \--bundle-adjust-prefix match_files/match
+
+#PC-align, this align the DEM with a ground truth (LOLA or KAGUYA file) 
+
+pc_align --max-displacement 350 Clip_Kaguya.tif PC.tif \--save-transformed-source-points  -o align/align_1
+
+#Creation of the DTM, this will output the final tif 
+
+point2dem -r moon -s 3 --dem-hole-fill-len 500 align_1-trans_source.tif
