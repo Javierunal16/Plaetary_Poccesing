@@ -40,7 +40,7 @@ ls -d "$PWD"/*_lv2.cub > List.txt
 
 lronacpho from=\$1_lv2.cub to=\$1_lv3.cub phopar=Photofile.pvl -batchlist=Imputs.lis
 
-#Mosaic the images, if the images dont overlap, the hold parameter should be configured
+#Mosaic, if the images dont overlap, the hold parameter should be configured. Change the maximum size in Isispreference file (if mosaic excceds 12 GB)
 
 noseam from=List.txt to=Final.cub samples=333 lines=333
 
